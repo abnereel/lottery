@@ -32,6 +32,7 @@ func (c *IndexController) GetGifts() map[string]interface{} {
 	datalist := c.ServiceGift.GetAll()
 	list := make([]models.LtGift, 0)
 	for _, data := range datalist {
+		// 正常状态的才需要放进来
 		if data.SysStatus == 0 {
 			list = append(list, data)
 		}
