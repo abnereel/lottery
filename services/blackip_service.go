@@ -19,7 +19,7 @@ type blackipService struct {
 	dao *dao.BlackipDao
 }
 
-func NewBalckService() BlackipService {
+func NewBlackService() BlackipService {
 	return &blackipService{
 		dao: dao.NewBlackipDao(nil),
 	}
