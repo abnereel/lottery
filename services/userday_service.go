@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/abnereel/lottery/dao"
+	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
 )
 
@@ -22,7 +23,7 @@ type userdayService struct {
 
 func NewUserdayService() UserdayService {
 	return &userdayService{
-		dao: dao.NewUserdayDao(nil),
+		dao: dao.NewUserdayDao(datasource.InstanceDbMaster()),
 	}
 }
 

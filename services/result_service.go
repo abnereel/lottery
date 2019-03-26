@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/abnereel/lottery/dao"
+	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
 )
 
@@ -25,7 +26,7 @@ type resultService struct {
 
 func NewResultService() ResultService {
 	return &resultService{
-		dao: dao.NewResultDao(nil),
+		dao: dao.NewResultDao(datasource.InstanceDbMaster()),
 	}
 }
 

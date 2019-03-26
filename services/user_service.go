@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/abnereel/lottery/dao"
+	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
 )
 
@@ -19,7 +20,7 @@ type userService struct {
 
 func NewUserService() UserService {
 	return &userService{
-		dao: dao.NewUserDao(nil),
+		dao: dao.NewUserDao(datasource.InstanceDbMaster()),
 	}
 }
 

@@ -18,13 +18,13 @@ type IndexController struct {
 	ServiceUserday services.UserdayService
 }
 
-// http://localhost:8080/
+// 首页
 func (c *IndexController) Get() string {
 	c.Ctx.Header("Content-Type", "text/html")
 	return "weclome to Go抽奖系统, <a href='/public/index.htm'>开始抽奖</a>"
 }
 
-// http://localhost:8080/gifts
+// 获取奖品
 func (c *IndexController) GetGifts() map[string]interface{} {
 	rs := make(map[string]interface{})
 	rs["code"] = 0
@@ -41,7 +41,7 @@ func (c *IndexController) GetGifts() map[string]interface{} {
 	return rs
 }
 
-// http://localhost:8080/newprize
+// 新的奖品
 func (c *IndexController) GetNewprize() map[string]interface{} {
 	rs := make(map[string]interface{})
 	rs["code"] = 0
@@ -51,18 +51,20 @@ func (c *IndexController) GetNewprize() map[string]interface{} {
 	return rs
 }
 
+// 登录
 func (c *IndexController) GetLogin() {
 	uid := comm.Random(100000)
 	loginuser := models.ObjLoginuser{
-		Uid: uid,
+		Uid:      uid,
 		Username: fmt.Sprintf("admin-%d", uid),
-		Now:comm.NowUnix(),
-		Ip:comm.ClientIP(c.Ctx.Request()),
+		Now:      comm.NowUnix(),
+		Ip:       comm.ClientIP(c.Ctx.Request()),
 	}
 	comm.SetLoginuser(c.Ctx.ResponseWriter(), &loginuser)
 	comm.Redirect(c.Ctx.ResponseWriter(), "/public/index.htm?from=login")
 }
 
+// 退出
 func (c *IndexController) GetLogout() {
 	comm.SetLoginuser(c.Ctx.ResponseWriter(), nil)
 	comm.Redirect(c.Ctx.ResponseWriter(), "/public/index.htm?from=logout")

@@ -66,6 +66,10 @@ func NewCache() *RedisConn {
 			if err != nil {
 				log.Fatal("rdshelper.NewCache Dial error=", err)
 			}
+			_, err = c.Do("AUTH", conf.RdsCache.Pwd)
+			if err != nil {
+				log.Fatal("rdshelper.NewCache Dial error auth =", err)
+			}
 			return c, nil
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {

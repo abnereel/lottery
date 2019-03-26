@@ -27,6 +27,8 @@ func InstanceDbMaster() *xorm.Engine {
 }
 
 func NewDbMaster() *xorm.Engine {
+	fmt.Println("newdbmaster")
+	log.Info("NewDbMaster")
 	sourcename := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8",
 		conf.DbMaster.User,
 		conf.DbMaster.Pwd,

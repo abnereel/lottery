@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/abnereel/lottery/dao"
+	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
 )
 
@@ -21,7 +22,7 @@ type blackipService struct {
 
 func NewBlackService() BlackipService {
 	return &blackipService{
-		dao: dao.NewBlackipDao(nil),
+		dao: dao.NewBlackipDao(datasource.InstanceDbMaster()),
 	}
 }
 
