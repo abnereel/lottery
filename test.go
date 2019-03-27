@@ -2,8 +2,16 @@ package main
 
 import "fmt"
 
+type Person struct {
+	Name string
+}
+
+func (p *Person) Say() {
+	fmt.Println(p.Name)
+}
+
 func main() {
-	s := make([]int, 5)
-	s = append(s, 1, 2, 3)
-	fmt.Println(s)
+	var p *Person
+	p.Say()
+	fmt.Println("123")
 }

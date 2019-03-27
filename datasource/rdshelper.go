@@ -33,6 +33,7 @@ func (rds *RedisConn) Do(commandName string, args ...interface{}) (reply interfa
 	if rds.showDebug {
 		fmt.Printf("[redis] [info] [%dus]cmd=%s, err=%s, args=%v, reply=%s",
 			(t2 -t1)/1000, commandName, err, args, reply)
+		fmt.Println()
 	}
 
 	return reply, err

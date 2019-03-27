@@ -61,10 +61,10 @@ func (s *codeService) Create(user *models.LtCode) error {
 	return s.dao.Create(user)
 }
 
-func (s *codeService) NextUsingCode(giftId, codeId int) *models.LtCode {
-	return s.dao.NextUsingCode(giftId, codeId)
-}
-
 func (s *codeService) UpdateByCode(data *models.LtCode, columns []string) error {
 	return s.dao.UpdateByCode(data, columns)
+}
+
+func (s *codeService) NextUsingCode(giftId, codeId int) *models.LtCode {
+	return s.dao.NextUsingCode(giftId, codeId)
 }

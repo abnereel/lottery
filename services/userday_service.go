@@ -1,9 +1,12 @@
 package services
 
 import (
+	"fmt"
 	"github.com/abnereel/lottery/dao"
 	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
+	"strconv"
+	"time"
 )
 
 type UserdayService interface {
@@ -56,5 +59,13 @@ func (s *userdayService) Create(user *models.LtUserday) error {
 }
 
 func (s *userdayService) GetUserToday(uid int) *models.LtUserday {
-	return nil
+	y, m, d := time.Now().Date()
+	strDay := fmt.Sprintf("%d%02d%02d", y, m, d)
+	day, _ := strconv.Atoi(strDay)
+	list := s.dao.Search(uid, day)
+	if list != nil && len(list) > 0 {
+		return &list[0]
+	} else {
+		return nil
+	}
 }
