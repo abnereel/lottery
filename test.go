@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Person struct {
 	Name string
@@ -14,4 +17,5 @@ func main() {
 	var p *Person
 	p.Say()
 	fmt.Println("123")
+	sort.Sort(sort.StringSlice{})
 }
