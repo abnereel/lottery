@@ -10,6 +10,7 @@ import (
 
 func ConfigureAppOneCron() {
 	go resetAllGiftPrizeData()
+	go distributionAllGiftPool()
 }
 
 func resetAllGiftPrizeData() {
@@ -27,6 +28,16 @@ func resetAllGiftPrizeData() {
 			log.Println("crontab end utils.ResetGiftPrizeData giftInfo=", giftInfo)
 		}
 	}
+
 	// 每5分钟执行一次
 	time.AfterFunc(5*time.Minute, resetAllGiftPrizeData)
+}
+
+func distributionAllGiftPool()  {
+	log.Println("crontab start utils.distributionAllGiftPool")
+	num := utils.DistributionGiftPool()
+	log.Println("crontab end utils.distributionAllGiftPool, num=", num)
+
+	// 每分钟执行一次
+	time.AfterFunc(time.Minute, distributionAllGiftPool)
 }

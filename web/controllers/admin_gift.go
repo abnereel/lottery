@@ -24,7 +24,7 @@ type AdminGiftController struct {
 }
 
 func (c *AdminGiftController) Get() mvc.Result {
-	datalist := c.ServiceGift.GetAll(true)
+	datalist := c.ServiceGift.GetAll(false)
 	total := len(datalist)
 	for i, giftInfo := range datalist {
 		// 奖品发放的计划数据
@@ -39,12 +39,14 @@ func (c *AdminGiftController) Get() mvc.Result {
 				newpd[index] = fmt.Sprintf("【%s】: %d", ct, pd[1])
 			}
 			str, err := json.Marshal(newpd)
-			if err != nil && len(str) > 0 {
+			if err == nil && len(str) > 0 {
 				datalist[i].PrizeData = string(str)
 			} else {
 				datalist[i].PrizeData = "[]"
 			}
 		}
+		num := utils.GetGiftPoolNum(giftInfo.Id)
+		datalist[i].Title = fmt.Sprintf("【%d】%s", num, datalist[i].Title)
 	}
 	return mvc.View{
 		Name: "admin/gift.html",
@@ -62,7 +64,7 @@ func (c *AdminGiftController) GetEdit() mvc.Result {
 	id := c.Ctx.URLParamIntDefault("id", 0)
 	giftInfo := viewmodels.ViewGift{}
 	if id > 0 {
-		data := c.ServiceGift.Get(id, true)
+		data := c.ServiceGift.Get(id, false)
 		giftInfo.Id = data.Id
 		giftInfo.Title = data.Title
 		giftInfo.PrizeNum = data.PrizeNum
@@ -116,7 +118,7 @@ func (c *AdminGiftController) PostSave() mvc.Result {
 	giftInfo.TimeEnd = int(t2.Unix())
 	if giftInfo.Id > 0 {
 		// 数据更新
-		datainfo := c.ServiceGift.Get(giftInfo.Id, true)
+		datainfo := c.ServiceGift.Get(giftInfo.Id, false)
 		if datainfo != nil && datainfo.Id > 0 {
 			if datainfo.PrizeNum != giftInfo.PrizeNum {
 				// 奖品数量发生变化

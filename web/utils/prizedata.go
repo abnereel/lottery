@@ -8,6 +8,7 @@ import (
 	"github.com/abnereel/lottery/datasource"
 	"github.com/abnereel/lottery/models"
 	"github.com/abnereel/lottery/services"
+	"github.com/gomodule/redigo/redis"
 	"log"
 	"time"
 )
@@ -23,6 +24,7 @@ func ResetGiftPrizeData(giftInfo *models.LtGift, giftService services.GiftServic
 	}
 	id := giftInfo.Id
 	nowTime := comm.NowUnix()
+	// 不能发奖，不需要设置发奖周期
 	if giftInfo.SysStatus == 1 || giftInfo.TimeBegin >= nowTime ||
 		giftInfo.TimeEnd <= nowTime || giftInfo.LeftNum <= 0 || giftInfo.PrizeNum <= 0 {
 		if giftInfo.PrizeData != "" {
@@ -350,4 +352,105 @@ func formatGiftPrizeData(nowTime, dayNum int, prizeData map[int]map[int][60]int)
 		}
 	}
 	return rs
+}
+
+/**
+ * 根据奖品的发奖计划，把设定的奖品数量放入奖品池
+ * 需要每分钟执行一次
+ *【难点】定时程序，根据奖品设置的数据，更新奖品池的数据
+ */
+func DistributionGiftPool() int {
+	totalNum := 0
+	now := comm.NowUnix()
+	giftService := services.NewGiftService()
+	list := giftService.GetAll(false)
+	if list != nil && len(list) > 0 {
+		for _, gift := range list {
+			// 是否正常状态
+			if gift.SysStatus != 0 {
+				continue
+			}
+			// 是否限量产品
+			if gift.PrizeNum < 1 {
+				continue
+			}
+			// 时间段是否正常
+			if gift.TimeBegin > now || gift.TimeEnd < now {
+				continue
+			}
+			// 计划数据的长度太短，不需要解析和执行
+			// 发奖计划，[[时间1,数量1],[时间2,数量2]]
+			if len(gift.PrizeData) <= 7 {
+				continue
+			}
+			var cronData [][2]int
+			err := json.Unmarshal([]byte(gift.PrizeData), &cronData)
+			if err != nil {
+				log.Println("prizedata.DistributionGiftPool Unmarshal error", err)
+			} else {
+				index := 0
+				giftNum := 0
+				for i, data := range cronData {
+					ct := data[0]
+					num := data[1]
+					if ct <= now {
+						giftNum += num
+						index = i + 1
+					} else {
+						break
+					}
+				}
+				// 更新奖品池
+				if giftNum > 0 {
+					incrGiftPool(gift.Id, giftNum)
+					totalNum += giftNum
+				}
+				// 更新奖品的发奖计划
+				if index > 0 {
+					if index >= len(cronData) {
+						cronData = make([][2]int, 0)
+					} else {
+						cronData = cronData[index:]
+					}
+					str, err := json.Marshal(cronData)
+					if err != nil {
+						log.Println("prizedata.DistributionGiftPool Marshal(cronData)", cronData, "error=", err)
+					}
+					columns := []string{"prize_data"}
+					err = giftService.Update(&models.LtGift{
+						Id:        gift.Id,
+						PrizeData: string(str),
+					}, columns)
+					if err != nil {
+						log.Println("prizedata.DistributionGiftPool giftService.Update error=", err)
+					}
+				}
+			}
+		}
+		if totalNum > 0 {
+			giftService.GetAll(true)
+		}
+	}
+	return totalNum
+}
+
+// 往奖品池增加奖品数量，redis缓存，根据计划数据
+func incrGiftPool(id, num int) int {
+	key := "gift_pool"
+	cacheObj := datasource.InstanceCache()
+	rtNum, err := redis.Int64(cacheObj.Do("HINCRBY", key, id, num))
+	if err != nil {
+		log.Println("prizedata.incrGiftPool error=", err)
+		return 0
+	}
+	if int(rtNum) < num {
+		// 递增少于预期值，补偿一次
+		num2 := num - int(rtNum)
+		rtNum, err = redis.Int64(cacheObj.Do("HINCRBY", key, id, num2))
+		if err != nil {
+			log.Println("prizedata.incrGiftPool2 error=", err)
+			return 0
+		}
+	}
+	return int(rtNum)
 }
