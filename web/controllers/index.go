@@ -29,7 +29,7 @@ func (c *IndexController) GetGifts() map[string]interface{} {
 	rs := make(map[string]interface{})
 	rs["code"] = 0
 	rs["msg"] = ""
-	datalist := c.ServiceGift.GetAll()
+	datalist := c.ServiceGift.GetAll(true)
 	list := make([]models.LtGift, 0)
 	for _, data := range datalist {
 		// 正常状态的才需要放进来

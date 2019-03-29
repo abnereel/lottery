@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/abnereel/lottery/conf"
+	"github.com/abnereel/lottery/cron"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
@@ -12,16 +13,16 @@ type Configurator func(*Bootstrapper)
 
 type Bootstrapper struct {
 	*iris.Application
-	AppName     string
-	AppOwner    string
+	AppName      string
+	AppOwner     string
 	AppSpawnDate time.Time
 }
 
 func New(appName, appOwner string, cfgs ...Configurator) *Bootstrapper {
 	b := &Bootstrapper{
-		Application: iris.New(),
-		AppName:     appName,
-		AppOwner:    appOwner,
+		Application:  iris.New(),
+		AppName:      appName,
+		AppOwner:     appOwner,
 		AppSpawnDate: time.Now(),
 	}
 
@@ -74,7 +75,7 @@ func (b *Bootstrapper) Configure(cs ...Configurator) {
 
 //计划任务
 func (b *Bootstrapper) setupCron() {
-	//TODO:
+	cron.ConfigureAppOneCron()
 }
 
 const (

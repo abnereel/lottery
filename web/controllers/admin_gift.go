@@ -6,6 +6,7 @@ import (
 	"github.com/abnereel/lottery/comm"
 	"github.com/abnereel/lottery/models"
 	"github.com/abnereel/lottery/services"
+	"github.com/abnereel/lottery/web/utils"
 	"github.com/abnereel/lottery/web/viewmodels"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/mvc"
@@ -23,7 +24,7 @@ type AdminGiftController struct {
 }
 
 func (c *AdminGiftController) Get() mvc.Result {
-	datalist := c.ServiceGift.GetAll()
+	datalist := c.ServiceGift.GetAll(true)
 	total := len(datalist)
 	for i, giftInfo := range datalist {
 		// 奖品发放的计划数据
@@ -61,7 +62,7 @@ func (c *AdminGiftController) GetEdit() mvc.Result {
 	id := c.Ctx.URLParamIntDefault("id", 0)
 	giftInfo := viewmodels.ViewGift{}
 	if id > 0 {
-		data := c.ServiceGift.Get(id)
+		data := c.ServiceGift.Get(id, true)
 		giftInfo.Id = data.Id
 		giftInfo.Title = data.Title
 		giftInfo.PrizeNum = data.PrizeNum
@@ -115,7 +116,7 @@ func (c *AdminGiftController) PostSave() mvc.Result {
 	giftInfo.TimeEnd = int(t2.Unix())
 	if giftInfo.Id > 0 {
 		// 数据更新
-		datainfo := c.ServiceGift.Get(giftInfo.Id)
+		datainfo := c.ServiceGift.Get(giftInfo.Id, true)
 		if datainfo != nil && datainfo.Id > 0 {
 			if datainfo.PrizeNum != giftInfo.PrizeNum {
 				// 奖品数量发生变化
@@ -123,13 +124,16 @@ func (c *AdminGiftController) PostSave() mvc.Result {
 				if giftInfo.LeftNum < 0 || giftInfo.PrizeNum <= 0 {
 					giftInfo.LeftNum = 0
 				}
-				// TODO:
+				// 奖品总数发生了变化
+				utils.ResetGiftPrizeData(&giftInfo, c.ServiceGift)
 			}
 			if datainfo.PrizeTime != giftInfo.PrizeTime {
-				// TODO: 发奖周期发生变化
+				// 发奖周期发生变化
+				utils.ResetGiftPrizeData(&giftInfo, c.ServiceGift)
 			}
 			giftInfo.SysUpdated = int(time.Now().Unix())
-			_ = c.ServiceGift.Update(&giftInfo, []string{""})
+			_ = c.ServiceGift.Update(&giftInfo, []string{"title", "prize_num", "left_num", "prize_code", "prize_time",
+				"img", "displayorder", "gtype", "gdata", "time_begin", "time_end", "sys_updated"})
 		} else {
 			giftInfo.Id = 0
 		}
@@ -139,6 +143,8 @@ func (c *AdminGiftController) PostSave() mvc.Result {
 		giftInfo.SysIp = comm.ClientIP(c.Ctx.Request())
 		giftInfo.SysCreated = int(time.Now().Unix())
 		_ = c.ServiceGift.Create(&giftInfo)
+		// 新的奖品，更新奖品的发奖计划
+		utils.ResetGiftPrizeData(&giftInfo, c.ServiceGift)
 	}
 	return mvc.Response{
 		Path: "/admin/gift",

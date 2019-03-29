@@ -34,11 +34,18 @@ func (c *IndexController) GetLucky() map[string]interface{} {
 	}
 
 	// 3 验证用户今日参与次数
-	ok = c.checkUserday(loginuser.Uid)
-	if !ok {
+	userDayNum := utils.IncrUserLuckyNum(loginuser.Uid)
+	if userDayNum > conf.UserPrizeMax {
 		rs["code"] = 103
 		rs["msg"] = "今日的抽奖次数已用完，明天再来"
 		return rs
+	} else {
+		ok = c.checkUserday(loginuser.Uid, userDayNum)
+		if !ok {
+			rs["code"] = 103
+			rs["msg"] = "今日的抽奖次数已用完，明天再来"
+			return rs
+		}
 	}
 
 	// 4 验证IP今日参与次数
@@ -87,6 +94,11 @@ func (c *IndexController) GetLucky() map[string]interface{} {
 
 	// 9 有限制奖品发放
 	if prizeGift.PrizeNum > 0 {
+		if utils.GetGiftPoolNum(prizeGift.Id) <= 0 {
+			rs["code"] = 206
+			rs["msg"] = "很遗憾，没有中奖，请下次再试"
+			return rs
+		}
 		ok = utils.PrizeGift(prizeGift.Id, prizeGift.LeftNum)
 		if !ok {
 			rs["code"] = 207

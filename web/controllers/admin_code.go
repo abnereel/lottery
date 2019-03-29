@@ -6,6 +6,7 @@ import (
 	"github.com/abnereel/lottery/conf"
 	"github.com/abnereel/lottery/models"
 	"github.com/abnereel/lottery/services"
+	"github.com/abnereel/lottery/web/utils"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/mvc"
 	"strings"
@@ -30,9 +31,11 @@ func (c *AdminCodeController) Get() mvc.Result {
 	// 数据列表
 	var datalist []models.LtCode
 	var total int = 0
-	// TODO:
+	var num int
+	var cacheNum int
 	if giftId > 0 {
 		datalist = c.ServiceCode.Search(giftId)
+		num, cacheNum = utils.GetCacheCodeNum(giftId, c.ServiceCode)
 	} else {
 		datalist = c.ServiceCode.GetAll(page, size)
 	}
@@ -58,8 +61,8 @@ func (c *AdminCodeController) Get() mvc.Result {
 			"Total":    total,
 			"PagePrev": pagePrev,
 			"PageNext": pageNext,
-			/*"CodeNum":  num,
-			"CacheNum": cacheNum,*/
+			"CodeNum":  num,
+			"CacheNum": cacheNum,
 		},
 		Layout: "admin/layout.html",
 	}
@@ -71,7 +74,7 @@ func (c *AdminCodeController) PostImport() {
 		_, _ = c.Ctx.Text("没有指定奖品ID，无法进行导入，<a href='' onclick='history.go(-1);return false;'>返回</a>")
 		return
 	}
-	gift := c.ServiceGift.Get(giftId)
+	gift := c.ServiceGift.Get(giftId, true)
 	if gift == nil || gift.Id < 1 || gift.Gtype != conf.GtypeCodeDiff {
 		_, _ = c.Ctx.Text("奖品信息不存在或者奖品类型不是差异化优惠券，无法导入，<a href='' onclick='history.go(-1);return false;'>返回</a>")
 		return
@@ -85,8 +88,8 @@ func (c *AdminCodeController) PostImport() {
 		code := strings.TrimSpace(code)
 		if code != "" {
 			data := &models.LtCode{
-				GiftId: giftId,
-				Code: code,
+				GiftId:     giftId,
+				Code:       code,
 				SysCreated: now,
 			}
 			err := c.ServiceCode.Create(data)
@@ -95,6 +98,12 @@ func (c *AdminCodeController) PostImport() {
 			} else {
 				sucNum++
 				// TODO: 成功导入数据库，下一步还需要导入缓存
+				ok := utils.ImportCacheCodes(giftId, code)
+				if ok {
+					sucNum++
+				} else {
+					errNum++
+				}
 			}
 		}
 	}
@@ -127,4 +136,21 @@ func (c *AdminCodeController) GetReset() mvc.Result {
 	return mvc.Response{
 		Path: refer,
 	}
+}
+
+func (c *AdminCodeController) GEtRecache() {
+	refer := c.Ctx.GetHeader("Referer")
+	if refer == "" {
+		refer = "/admin/code"
+	}
+	id, err := c.Ctx.URLParamInt("id")
+	if id < 1 || err != nil {
+		rs := fmt.Sprintf("没有指定优惠券所属的奖品ID，<a href='%s'>返回</a>", refer)
+		_, _ = c.Ctx.HTML(rs)
+		return
+	}
+	sucNum, errNum := utils.RecacheCodes(id, c.ServiceCode)
+	rs := fmt.Sprintf("sucNum=%d, errNum=%d, <a href='%s'>返回</a>", sucNum, errNum, refer)
+	_, _ = c.Ctx.HTML(rs)
+	return
 }
