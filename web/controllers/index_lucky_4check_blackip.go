@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"github.com/abnereel/lottery/models"
+	"github.com/abnereel/lottery/services"
 	"time"
 )
 
-func (c *IndexController) checkBlackip(ip string) (bool, *models.LtBlackip) {
-	info := c.ServiceBlackip.GetByIp(ip)
+func (api *LuckyApi) checkBlackip(ip string) (bool, *models.LtBlackip) {
+	info := services.NewBlackipService().GetByIp(ip)
 	if info == nil || info.Ip == "" {
 		return true, nil
 	}

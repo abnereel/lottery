@@ -24,7 +24,7 @@ type blackipService struct {
 	dao *dao.BlackipDao
 }
 
-func NewBlackService() BlackipService {
+func NewBlackipService() BlackipService {
 	return &blackipService{
 		dao: dao.NewBlackipDao(datasource.InstanceDbMaster()),
 	}

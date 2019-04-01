@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"github.com/abnereel/lottery/conf"
 	"github.com/abnereel/lottery/models"
+	"github.com/abnereel/lottery/services"
 	"github.com/abnereel/lottery/web/utils"
 	"log"
 	"strconv"
 	"time"
 )
 
-func (c *IndexController) checkUserday(uid int, num int64) bool {
-	userdayInfo := c.ServiceUserday.GetUserToday(uid)
+func (api *LuckyApi) checkUserday(uid int, num int64) bool {
+	userdayService := services.NewUserdayService()
+	userdayInfo := userdayService.GetUserToday(uid)
 	if userdayInfo != nil && userdayInfo.Uid == uid {
 		// 今天存在抽奖记录
 		if userdayInfo.Num >= conf.UserPrizeMax {
@@ -24,7 +26,7 @@ func (c *IndexController) checkUserday(uid int, num int64) bool {
 			if int(num) < userdayInfo.Num {
 				utils.InitUserLuckyNum(uid, int64(userdayInfo.Num))
 			}
-			err103 := c.ServiceUserday.Update(userdayInfo, nil)
+			err103 := userdayService.Update(userdayInfo, nil)
 			if err103 != nil {
 				log.Println("index_lucky_check_userday ServiceUserDay.Update err103=", err103)
 			}
@@ -40,7 +42,7 @@ func (c *IndexController) checkUserday(uid int, num int64) bool {
 			Num:        1,
 			SysCreated: int(time.Now().Unix()),
 		}
-		err103 := c.ServiceUserday.Create(userdayInfo)
+		err103 := userdayService.Create(userdayInfo)
 		if err103 != nil {
 			log.Println("index_lucky_check_userday ServiceUserDay.Create err103=", err103)
 		}

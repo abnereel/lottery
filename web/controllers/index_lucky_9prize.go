@@ -3,11 +3,12 @@ package controllers
 import (
 	"github.com/abnereel/lottery/conf"
 	"github.com/abnereel/lottery/models"
+	"github.com/abnereel/lottery/services"
 )
 
-func (c *IndexController) prize(prizeCode int, limitBlack bool) *models.ObjGiftPrize {
+func (api *LuckyApi) prize(prizeCode int, limitBlack bool) *models.ObjGiftPrize {
 	var prizeGift *models.ObjGiftPrize
-	giftList := c.ServiceGift.GetAllUse(true)
+	giftList := services.NewGiftService().GetAllUse(true)
 	for _, gift := range giftList {
 		if gift.PrizeCodeA <= prizeCode && gift.PrizeCodeB >= prizeCode {
 			// 中奖编码区间满足条件，说明可以中奖
