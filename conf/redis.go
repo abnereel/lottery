@@ -10,10 +10,10 @@ type RdsConfig struct {
 
 var RdsCacheList = []RdsConfig {
 	{
-		Host:      "47.96.7.111",
+		Host:      "localhost",
 		Port:      6379,
 		User:      "",
-		Pwd:       "redis123qwe",
+		Pwd:       "password",
 		IsRunning: true,
 	},
 }

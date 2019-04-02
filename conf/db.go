@@ -13,10 +13,10 @@ type DbConfig struct {
 
 var DbMasterList = []DbConfig {
 	{
-		Host:      "47.96.7.111",
+		Host:      "localhost",
 		Port:      3306,
 		User:      "lottery",
-		Pwd:       "lottery@123QWE",
+		Pwd:       "password",
 		Database:  "lottery",
 		isRunning: true,
 	},
